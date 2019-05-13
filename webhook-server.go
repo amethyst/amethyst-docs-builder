@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -43,6 +42,11 @@ func main() {
 	})
 
 	r.Post("/trigger", func(w http.ResponseWriter, r *http.Request) {
+		if r.Body == nil {
+			http.Error(w, "empty body", 400)
+			return
+		}
+
 		digest := r.Header.Get("X-Hub-Signature")
 		if digest == "" {
 			http.Error(w, "empty secret header", 403)
@@ -58,15 +62,10 @@ func main() {
 		key := []byte(secret)
 		h := hmac.New(sha1.New, key)
 		h.Write(body)
-		str := base64.StdEncoding.EncodeToString(h.Sum(nil))
+		str := string(h.Sum(nil))
+		calc := fmt.Sprintf("sha1=%s", str)
 
-		var b map[string]interface{}
-		if r.Body == nil {
-			http.Error(w, "empty body", 400)
-			return
-		}
-
-		if str != digest {
+		if calc != digest {
 			log.Printf("sha1 didn't match: %s\n", str)
 			http.Error(w, "invalid secret", 403)
 			return
@@ -74,6 +73,8 @@ func main() {
 
 		r.Body.Close()
 		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+		var b map[string]interface{}
 		err = json.NewDecoder(r.Body).Decode(&b)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
