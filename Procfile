@@ -1,1 +1,1 @@
-web: /app/server
+web: file server
