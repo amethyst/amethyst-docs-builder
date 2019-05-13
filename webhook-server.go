@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/base64"
@@ -65,15 +66,17 @@ func main() {
 			return
 		}
 
-		err = json.NewDecoder(r.Body).Decode(&b)
-		if err != nil {
-			http.Error(w, err.Error(), 400)
-			return
-		}
-
 		if str != digest {
 			log.Printf("sha1 didn't match: %s\n", str)
 			http.Error(w, "invalid secret", 403)
+			return
+		}
+
+		r.Body.Close()
+		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		err = json.NewDecoder(r.Body).Decode(&b)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
 			return
 		}
 
