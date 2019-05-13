@@ -1,8 +1,12 @@
 package main
 
 import (
+	"crypto/hmac"
+	"crypto/sha1"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -38,31 +42,37 @@ func main() {
 	})
 
 	r.Post("/trigger", func(w http.ResponseWriter, r *http.Request) {
+		digest := r.Header.Get("X-Hub-Signature")
+		if digest == "" {
+			http.Error(w, "empty secret header", 403)
+			return
+		}
+
+		body, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
+
+		key := []byte(secret)
+		h := hmac.New(sha1.New, key)
+		h.Write(body)
+		str := base64.StdEncoding.EncodeToString(h.Sum(nil))
+
 		var b map[string]interface{}
 		if r.Body == nil {
 			http.Error(w, "empty body", 400)
 			return
 		}
 
-		err := json.NewDecoder(r.Body).Decode(&b)
+		err = json.NewDecoder(r.Body).Decode(&b)
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
 
-		config, ok := b["config"].(map[string]interface{})
-		if !ok {
-			http.Error(w, "config map not present", 400)
-			return
-		}
-
-		s, ok := config["secret"].(string)
-		if !ok {
-			http.Error(w, "no secret provided", 400)
-			return
-		}
-
-		if s != secret {
+		if str != digest {
+			log.Printf("sha1 didn't match: %s\n", str)
 			http.Error(w, "invalid secret", 403)
 			return
 		}
