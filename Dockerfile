@@ -10,7 +10,7 @@ ADD webhook-server.go .
 
 RUN go build -o server
 
-FROM rust:latest
+FROM rust:alpine
 RUN apk update && apk add --no-cache git
 
 RUN mkdir -p /app
