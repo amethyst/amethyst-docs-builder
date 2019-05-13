@@ -17,6 +17,6 @@ RUN mkdir -p /app
 WORKDIR /app
 COPY --from=build-server /app/server /app/server
 
-ADD *.sh .
+ADD *.sh ./
 ADD CHECKS .
 ADD Procfile .
