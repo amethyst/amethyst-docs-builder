@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install git
 RUN mkdir -p /app
 WORKDIR /app
 COPY --from=build-server /app/server /app/server
+RUN chmod ugo+x server
 
 ADD *.sh ./
 ADD CHECKS .
