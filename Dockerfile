@@ -8,7 +8,7 @@ ADD go.mod .
 ADD go.sum .
 ADD webhook-server.go .
 
-RUN go build -o server
+RUN CGO_ENABLED=0 GOOS=linux go build -o server
 
 FROM rust:latest
 RUN apt-get update && apt-get install git
