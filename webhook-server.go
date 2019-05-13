@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -62,11 +63,11 @@ func main() {
 		key := []byte(secret)
 		h := hmac.New(sha1.New, key)
 		h.Write(body)
-		str := string(h.Sum(nil))
-		calc := fmt.Sprintf("sha1=%s", str)
+		hex := hex.EncodeToString(h.Sum(nil))
+		calc := fmt.Sprintf("sha1=%s", hex)
 
 		if calc != digest {
-			log.Printf("sha1 didn't match: %s\n", str)
+			log.Printf("sha1 didn't match: %s\n", calc)
 			http.Error(w, "invalid secret", 403)
 			return
 		}
