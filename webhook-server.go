@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/go-chi/chi"
 )
@@ -78,6 +80,23 @@ func main() {
 		}
 
 		log.Printf("executing script: %s\n", scriptPath)
+		go func() {
+			cmd := exec.Command("/bin/sh", scriptPath)
+			out, err := cmd.Output()
+			if err != nil {
+				log.Printf("error running script:\n%s\n", err.Error())
+				return
+			}
+
+			lines := strings.Split(string(out), "\n")
+			log.Print("output:\n")
+
+			for _, l := range lines {
+				log.Printf("---> %s\n", l)
+			}
+		}()
+
+		w.WriteHeader(204)
 	})
 
 	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
