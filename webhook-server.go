@@ -36,7 +36,7 @@ func main() {
 	})
 
 	r.Route("/trigger", func(r chi.Router) {
-		r.Post("/trigger", func(w http.ResponseWriter, r *http.Request) {
+		r.Post("", func(w http.ResponseWriter, r *http.Request) {
 			var b map[string]interface{}
 			if r.Body == nil {
 				http.Error(w, "empty body", 400)
