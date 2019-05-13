@@ -35,22 +35,20 @@ func main() {
 		w.Write([]byte("up"))
 	})
 
-	r.Route("/trigger", func(r chi.Router) {
-		r.Post("", func(w http.ResponseWriter, r *http.Request) {
-			var b map[string]interface{}
-			if r.Body == nil {
-				http.Error(w, "empty body", 400)
-				return
-			}
+	r.Post("/trigger", func(w http.ResponseWriter, r *http.Request) {
+		var b map[string]interface{}
+		if r.Body == nil {
+			http.Error(w, "empty body", 400)
+			return
+		}
 
-			err := json.NewDecoder(r.Body).Decode(&b)
-			if err != nil {
-				http.Error(w, err.Error(), 400)
-				return
-			}
+		err := json.NewDecoder(r.Body).Decode(&b)
+		if err != nil {
+			http.Error(w, err.Error(), 400)
+			return
+		}
 
-			fmt.Printf("received: %v\n", b)
-		})
+		fmt.Printf("received: %v\n", b)
 	})
 
 	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
