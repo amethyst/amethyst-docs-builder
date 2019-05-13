@@ -48,15 +48,37 @@ func main() {
 			return
 		}
 
-		fmt.Printf("received: %v\n", b)
+		config, ok := b["config"].(map[string]interface{})
+		if !ok {
+			http.Error(w, "config map not present", 400)
+			return
+		}
+
+		s, ok := config["secret"].(string)
+		if !ok {
+			http.Error(w, "no secret provided", 400)
+			return
+		}
+
+		if s != secret {
+			http.Error(w, "invalid secret", 403)
+			return
+		}
+
+		ref, ok := b["ref"].(string)
+		if !ok {
+			http.Error(w, "no ref present", 400)
+			return
+		}
+
+		if ref != "refs/heads/master" {
+			log.Printf("ignoring push to ref: %s\n", ref)
+			w.WriteHeader(204)
+			return
+		}
+
+		log.Printf("executing script: %s\n", scriptPath)
 	})
 
 	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
-}
-
-func validateSecret(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("validating secret: %v\n", secret)
-		next.ServeHTTP(w, r)
-	})
 }
