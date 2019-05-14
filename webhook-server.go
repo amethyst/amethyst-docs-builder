@@ -20,7 +20,7 @@ import (
 var secret string
 var scriptPath string
 
-const semverRegex = "(?n)^(?<Major>0|[1-9]\\d*)\\.(?<Minor>0|[1-9]\\d*)\\.(?<Patch>0|[1-9]\\d*)(?<PreReleaseTagWithSeparator>-(?<PreReleaseTag>((0|[1-9]\\d*|\\d*[A-Z-a-z-][\\dA-Za-z-]*))(\\.(0|[1-9]\\d*|\\d*[A-Za-z-][\\dA-Za-z-]*))*))?(?<BuildMetadataTagWithSeparator>\\+(?<BuildMetadataTag>[\\dA-Za-z-]+(\\.[\\dA-Za-z-]*)*))?$"
+const semverRegex = "^v(0|[1-9]+).(0|[1-9]+)(.(0|[1-9]+))?$"
 
 func main() {
 	stablePath := "./public/stable"
@@ -60,21 +60,19 @@ func main() {
 	r.Get("/health", handleHealth)
 	r.Post("/trigger", handleTrigger)
 
-	// Is this correct?!
-	r.Get("/stable/*", serveFs(stableFs))
-	r.Get("/master/*", serveFs(masterFs))
-	r.Get(tagsURL, serveFs(tagsFs))
+	r.Get("/stable/*", stableFs.ServeHTTP)
+	r.Get("/master/*", masterFs.ServeHTTP)
+	r.Get(tagsURL, tagsFs.ServeHTTP)
 
-	// How do i redirect to the same URL with an added prefix?
-	r.Get("/*", http.RedirectHandler("/stable/*", 301).ServeHTTP)
+	r.Get("/*", redirectToStable)
 
-	http.ListenAndServe(fmt.Sprintf(":%s", port), r)
+	log.Printf("serving on port %s\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
 }
 
-func serveFs(fs http.Handler) func(http.ResponseWriter, *http.Request) {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fs.ServeHTTP(w, r)
-	})
+func redirectToStable(w http.ResponseWriter, r *http.Request) {
+	p := "/stable" + r.URL.Path
+	http.Redirect(w, r, p, 301)
 }
 
 func mustMkDir(p string) {
@@ -163,5 +161,4 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	w.WriteHeader(204)
-
 }
