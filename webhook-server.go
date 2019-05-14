@@ -87,6 +87,13 @@ func handleHealth(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTrigger(w http.ResponseWriter, r *http.Request) {
+	eventType := r.Header.Get("X-GitHub-Event")
+	if eventType != "push" {
+		log.Printf("ignoring non-push event: %s\n", eventType)
+		w.WriteHeader(204)
+		return
+	}
+
 	if r.Body == nil {
 		http.Error(w, "empty body", 400)
 		return
@@ -118,13 +125,6 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 
 	r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
-
-	eventType := r.Header.Get("X-GitHub-Event")
-	if eventType != "push" {
-		log.Printf("ignoring non-push event: %s\n", eventType)
-		w.WriteHeader(204)
-		return
-	}
 
 	var b map[string]interface{}
 	err = json.NewDecoder(r.Body).Decode(&b)
