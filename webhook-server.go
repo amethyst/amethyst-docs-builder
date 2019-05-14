@@ -116,6 +116,13 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	eventType := r.Header.Get("X-GitHub-Event")
+	if eventType != "push" {
+		log.Printf("ignoring non-push event: %s\n", eventType)
+		w.WriteHeader(204)
+		return
+	}
+
 	r.Body.Close()
 	r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
