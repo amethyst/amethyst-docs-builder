@@ -146,8 +146,7 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("executing script: %s\n", scriptPath)
-	go func() {
-	}()
+	go runScript()
 
 	w.WriteHeader(204)
 }
