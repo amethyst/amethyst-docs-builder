@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
@@ -12,7 +13,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"strings"
 
 	"github.com/go-chi/chi"
 )
@@ -147,25 +147,33 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("executing script: %s\n", scriptPath)
 	go func() {
-		cmd := exec.Command("/bin/sh", scriptPath)
-		out, err := cmd.Output()
-		if err != nil {
-			log.Printf("error running script:\n%s\n", err.Error())
-			return
-		}
-
-		lines := strings.Split(string(out), "\n")
-		log.Print("output:\n")
-
-		for _, l := range lines {
-			trimmed := strings.TrimSpace(l)
-			if len(trimmed) == 0 {
-				continue
-			}
-
-			log.Printf("---> %s\n", l)
-		}
 	}()
 
 	w.WriteHeader(204)
+}
+
+func runScript() {
+	cmd := exec.Command("/bin/sh", scriptPath)
+	stdout, _ := cmd.StdoutPipe()
+	stderr, _ := cmd.StderrPipe()
+
+	cmd.Start()
+
+	stdoutScanner := bufio.NewScanner(stdout)
+	stderrScanner := bufio.NewScanner(stderr)
+
+	stdoutScanner.Split(bufio.ScanLines)
+	for stdoutScanner.Scan() {
+		m := stdoutScanner.Text()
+		log.Printf("---> %s\n", m)
+	}
+
+	// flush stderr
+	stderrScanner.Split(bufio.ScanLines)
+	for stderrScanner.Scan() {
+		m := stderrScanner.Text()
+		log.Printf("!--> %s\n", m)
+	}
+
+	cmd.Wait()
 }
