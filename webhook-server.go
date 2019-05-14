@@ -153,26 +153,42 @@ func handleTrigger(w http.ResponseWriter, r *http.Request) {
 
 func runScript() {
 	cmd := exec.Command("/bin/sh", scriptPath)
-	stdout, _ := cmd.StdoutPipe()
-	stderr, _ := cmd.StderrPipe()
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Printf("couldn't get stdout: %s\n", err.Error())
+		return
+	}
 
-	cmd.Start()
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Printf("couldn't get stderr: %s\n", err.Error())
+		return
+	}
+
+	err = cmd.Start()
+	if err != nil {
+		log.Printf("couldn't start cmd: %s\n", err.Error())
+		return
+	}
 
 	stdoutScanner := bufio.NewScanner(stdout)
 	stderrScanner := bufio.NewScanner(stderr)
 
-	stdoutScanner.Split(bufio.ScanLines)
-	for stdoutScanner.Scan() {
-		m := stdoutScanner.Text()
-		log.Printf("---> %s\n", m)
-	}
+	go print(stdoutScanner, "--->")
+	go print(stderrScanner, "!!->")
 
-	// flush stderr
-	stderrScanner.Split(bufio.ScanLines)
-	for stderrScanner.Scan() {
-		m := stderrScanner.Text()
-		log.Printf("!--> %s\n", m)
+	log.Print("waiting for output\n")
+	err = cmd.Wait()
+	if err != nil {
+		log.Printf("err waiting for cmd: %s\n", err)
 	}
+	log.Print("command ran\n")
+}
 
-	cmd.Wait()
+func print(s *bufio.Scanner, pre string) {
+	s.Split(bufio.ScanLines)
+	for s.Scan() {
+		m := s.Text()
+		log.Printf("%s %s\n", pre, m)
+	}
 }
