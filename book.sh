@@ -3,7 +3,7 @@ rm -rf public
 rm -rf amethyst
 
 echo "Creating folders..."
-mkdir -p public/book/
+mkdir -p public/
 mkdir -p amethyst/
 
 echo "Updating tooling..."
@@ -29,8 +29,8 @@ mdbook build book
 popd
 
 echo "Moving stable to public dir..."
-mkdir -p public/book/stable/
-mv -f amethyst/book/book/* public/book/stable
+mkdir -p public/stable/
+mv -f amethyst/book/book/* public/stable
 
 pushd amethyst
 for tag in $(git tag)
