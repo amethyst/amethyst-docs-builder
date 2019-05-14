@@ -6,52 +6,44 @@ echo "Creating folders..."
 mkdir -p public/book/
 mkdir -p amethyst/
 
-echo "Installing dependencies..."
-cargo install-update --version || cargo install cargo-update
-mdbook --version || cargo install mdbook
+echo "Updating tooling..."
 cargo install-update -a
 
 echo "Cloning amethyst..."
-git clone https://github.com/amethyst/amethyst --branch master amethyst/master
-cd amethyst/master
+git clone https://github.com/amethyst/amethyst --branch master amethyst
 
-echo "Compiling master branch book"
+echo "Compiling master branch book..."
+pushd amethyst
 mdbook build book
+popd
 
-cd ../../
+echo "Moving master to public dir..."
+mkdir -p public/master/
+mv -f amethyst/book/book/* public/master/
 
-echo "Moving book to /public/"
-mkdir -p public/book/master/
-mv -f amethyst/master/book/book/* public/book/master/
-
-cd amethyst/master
+echo "Compiling stable ($LATEST_TAG)..."
+pushd amethyst
 LATEST_TAG=$(git describe --abbrev=0 --tags)
-echo "Checking out $LATEST_TAG"
 git checkout -q $LATEST_TAG
-
-echo "Compiling $LATEST_TAG book"
 mdbook build book
+popd
 
-cd ../../
-
-echo "Moving book to /public/"
+echo "Moving stable to public dir..."
 mkdir -p public/book/stable/
-mv -f amethyst/master/book/book/* public/book/stable
+mv -f amethyst/book/book/* public/book/stable
 
-cd amethyst/master
+pushd amethyst
 for tag in $(git tag)
 do
-    echo "Checking out $tag"
+    echo "Compiling $tag..."
     git checkout -q $tag
-
-    echo "Compiling $tag book"
     mdbook build book
 
-    cd ../../
+    popd
 
-    mkdir -p build/book/$tag/
-    mv -f amethyst/master/book/book/* build/book/$tag/
+    mkdir -p public/tags/$tag/
+    mv -f amethyst/book/book/* public/tags/$tag/
 
-    cd amethyst/master
+    pushd amethyst
 done
-cd ../../
+popd

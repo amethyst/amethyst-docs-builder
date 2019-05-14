@@ -21,3 +21,6 @@ RUN chmod ugo+x server
 ADD *.sh ./
 ADD CHECKS .
 ADD Procfile .
+
+RUN cargo install cargo-update; \
+    cargo install mdbook
