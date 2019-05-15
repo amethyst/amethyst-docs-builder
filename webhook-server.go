@@ -24,20 +24,11 @@ var scriptPath string
 const semverRegex = "^v(0|[1-9]+).(0|[1-9]+)(.(0|[1-9]+))?$"
 
 func main() {
-	if _, ok := os.LookupEnv("SECRET"); !ok {
-		log.Fatal("secret env variable is not set!\n")
-	}
-	secret = os.Getenv("SECRET")
+	secret = getEnvOr("SECRET", "123")
+	port := getEnvOr("PORT", "3000")
+	scriptPath = getEnvOr("SCRIPT", "./run.sh")
 
-	port := "3000"
-	if val, ok := os.LookupEnv("PORT"); ok {
-		port = val
-	}
-
-	scriptPath = "./run.sh"
-	if val, ok := os.LookupEnv("SCRIPT"); ok {
-		scriptPath = val
-	}
+	log.Printf("using script %s\n", scriptPath)
 
 	catchAll := chi.NewRouter()
 	catchAll.Get("/health", handleHealth)
