@@ -1,6 +1,7 @@
 #!/bin/sh
 echo "Creating folders..."
 mkdir -p public/tags
+rm -rf amethyst
 mkdir -p amethyst/
 
 echo "Updating tooling..."
@@ -14,7 +15,7 @@ echo "Compiling master book..."
 mdbook build book
 
 echo "Compiling master docs..."
-cargo doc --all --no-deps --quiet
+cargo doc --all --quiet
 cd ..
 
 echo "Moving master to public dir..."
@@ -24,7 +25,7 @@ mv -f amethyst/book/book/* public/book/master/
 
 rm -rf public/docs/master
 mkdir -p public/docs/master
-cp -rf amethyst/target/doc/ public/docs/master/
+cp -rf amethyst/target/doc/* public/docs/master/
 
 cd amethyst
 LATEST_TAG=$(git describe --abbrev=0 --tags)
@@ -34,7 +35,7 @@ echo "Compiling stable book ($LATEST_TAG)..."
 mdbook build book
 
 echo "Compiling stable docs ($LATEST_TAG)..."
-cargo doc --all --no-deps --quiet
+cargo doc --all --quiet
 cd ..
 
 echo "Moving stable to public dir..."
@@ -44,7 +45,7 @@ mv -f amethyst/book/book/* public/book/stable
 
 rm -rf public/docs/stable
 mkdir -p public/docs/stable/
-cp -rf amethyst/target/doc/ public/docs/stable
+cp -rf amethyst/target/doc/* public/docs/stable
 
 cd amethyst
 for tag in $(git tag)
