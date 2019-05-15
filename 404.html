@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Karla|Arvo:700" rel="stylesheet"> 
+    <title>404 - Amethyst Game Engine</title>
+
+    <style>
+        body {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            padding: 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        html, h1, h2, h3, h4, h5, h6 {
+            font-family: 'Karla', sans-serif;
+            color: #2e2a39;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        h1 {
+            opacity: .4;
+            font-size: 4rem;
+            margin: 0 0 1rem 0;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            text-align: center;
+            margin: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            color: #2e2a39;
+            font-size: .8rem;
+            text-decoration: none;
+            margin-top: 6rem;
+        }
+
+        svg {
+            margin-right: 1em;
+            width: 8em;
+            height: 8em;
+        }
+
+        .logo h3 {
+            position: relative;
+            padding-bottom: 1.2em;
+            margin-bottom: .8em;
+            margin-top: 0;
+            font-family: 'Arvo', sans-serif;
+        }
+
+        .logo .main {
+            font-size: 3.2em;
+            font-weight: bold;
+        }
+
+        .logo .sub {
+            font-size: 1.6em;
+            position: absolute;
+            bottom: 0px;
+            left: 0px;
+        }
+
+        .text {
+            width: 30rem;
+            text-align: center;
+            font-size: 1.3rem;
+            max-width: 90%;
+            padding: 1rem;
+            margin: 1rem 0 2rem 0;
+        }
+
+        .links {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.4rem;
+            flex-wrap: wrap;
+            padding: 0;
+            margin: 0;
+        }
+
+        .links a {
+            color: #7f41ef;
+            text-decoration: none;
+            padding: .5em 1em;
+            margin: 1.2rem;
+            border: 2px solid #7f41ef;
+            border-radius: 10px;
+            transition: all .15s ease-in-out;
+            transition-property: color, background;
+        }
+
+        .links a:hover {
+            background-color: #7f41ef;
+            color: #fff
+        }
+
+        @media (max-width: 1000px) {
+            .logo {
+                margin-top: 0;
+                font-size: .6rem;
+            }
+
+            .links {
+                font-size: 1.2rem;
+            }
+
+            .links li:not(last-child) {
+                margin-bottom: 2em;
+            }
+
+            h1 {
+                font-size: 3rem;
+            }
+
+            h2 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>404</h1>
+    <h2>Oops! There's nothing here.</h2>
+    <div class="text">
+        The page you requested does not exist. Can we interest you in any of the following?
+    </div>
+    <ul class="links">
+        <li><a href="https://amethyst.rs">Home</a></li>
+        <li><a href="https://docs.amethyst.rs/stable/amethyst">Docs</a></li>
+        <li><a href="https://book.amethyst.rs/stable/">Book</a></li>
+        <li><a href="https://community.amethyst.rs">Forums</a></li>
+    </ul>
+
+    <a href="https://amethyst.rs" class="logo">
+        <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M16 0A16 16 0 0 0 0 16a16 16 0 0 0 16 16 16 16 0 0 0 16-16A16 16 0 0 0 16 0zm-1.82 3.15l3.91 2.48.66 4.14-1.35.9-1.09 9.54-2.45 1.1-1.64-2.06L11.1 6.68zm8.2 4.92l3 4.13-3.68 13.1-3.87-5.77-.89.4 1.02-8.91 3.33-2.25zm-11.4 10.58l2.47 3.1-.44 5.64-2.38-.41-2.72-7.33zm6.64 1.63l3.55 5.3-4.88 2.37-2.7-.46.44-5.6z"/></svg>
+        <h3>
+            <span class="main">Amethyst</span>
+            <span class="sub">Game Engine</span>
+        </h3>
+    </a>
+</body>
+</html>

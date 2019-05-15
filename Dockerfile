@@ -4,9 +4,7 @@ RUN apk update && apk add --no-cache git
 
 RUN mkdir -p /app
 WORKDIR /app
-ADD go.mod .
-ADD go.sum .
-ADD webhook-server.go .
+ADD go.mod go.sum webhook-server.go ./
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o server
 
@@ -17,6 +15,4 @@ WORKDIR /app
 COPY --from=build-server /app/server .
 RUN chmod ugo+x server
 
-ADD *.sh ./
-ADD CHECKS .
-ADD Procfile .
+ADD run.sh CHECKS Procfile 404.html ./

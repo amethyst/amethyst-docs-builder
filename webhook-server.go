@@ -15,16 +15,25 @@ import (
 	"os/exec"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/hostrouter"
 	"github.com/go-chi/render"
 )
 
 var secret string
 var scriptPath string
+var notFoundPage string
 
 const semverRegex = "^v(0|[1-9]+).(0|[1-9]+)(.(0|[1-9]+))?$"
 
 func main() {
+	f, err := ioutil.ReadFile("./404.html")
+	if err != nil {
+		log.Fatalf("couldn't read 404 page: %s\n", err.Error())
+	}
+
+	notFoundPage = string(f)
+
 	secret = getEnvOr("SECRET", "123")
 	port := getEnvOr("PORT", "3000")
 	scriptPath = getEnvOr("SCRIPT", "./run.sh")
@@ -33,9 +42,11 @@ func main() {
 
 	catchAll := chi.NewRouter()
 	catchAll.Get("/health", handleHealth)
+	catchAll.NotFound(handleNotFound)
 
 	trigger := chi.NewRouter()
 	trigger.Post("/", handleTrigger)
+	trigger.NotFound(handleNotFound)
 
 	r := chi.NewRouter()
 	hr := hostrouter.New()
@@ -43,6 +54,9 @@ func main() {
 	docsURL := getEnvOr("DOCS_URL", "docs.amethyst.rs")
 	bookURL := getEnvOr("BOOK_URL", "book.amethyst.rs")
 	triggerURL := getEnvOr("TRIGGER_URL", "hook.amethyst.rs")
+
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
 	hr.Map(docsURL, serveSubDirectory("docs"))
 	hr.Map(bookURL, serveSubDirectory("book"))
@@ -66,10 +80,8 @@ func getEnvOr(s, def string) string {
 }
 
 func handleNotFound(w http.ResponseWriter, r *http.Request) {
-	s := fmt.Sprintf("nothing found at %s %s", r.URL.Host, r.URL.Path)
-
-	render.Status(r, http.StatusNotFound)
-	render.PlainText(w, r, s)
+	w.WriteHeader(http.StatusNotFound)
+	render.HTML(w, r, notFoundPage)
 }
 
 func serveSubDirectory(subdir string) chi.Router {
