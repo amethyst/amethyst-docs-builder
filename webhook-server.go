@@ -16,6 +16,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/hostrouter"
+	"github.com/go-chi/render"
 )
 
 var secret string
@@ -49,6 +50,7 @@ func main() {
 	hr.Map("*", catchAll)
 
 	r.Mount("/", hr)
+	r.NotFound(handleNotFound)
 
 	log.Printf("serving on port %s\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
@@ -61,6 +63,13 @@ func getEnvOr(s, def string) string {
 	}
 
 	return result
+}
+
+func handleNotFound(w http.ResponseWriter, r *http.Request) {
+	s := fmt.Sprintf("nothing found at %s %s", r.URL.Host, r.URL.Path)
+
+	render.Status(r, http.StatusNotFound)
+	render.PlainText(w, r, s)
 }
 
 func serveSubDirectory(subdir string) chi.Router {
@@ -91,6 +100,8 @@ func serveSubDirectory(subdir string) chi.Router {
 	r.Get(tagsURL, tagsFs.ServeHTTP)
 
 	r.Get("/", http.RedirectHandler("/stable/", 301).ServeHTTP)
+	r.NotFound(handleNotFound)
+
 	return r
 }
 

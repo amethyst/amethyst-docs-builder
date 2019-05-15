@@ -2,3 +2,5 @@ github.com/go-chi/chi v4.0.2+incompatible h1:maB6vn6FqCxrpz4FqWdh4+lwpyZIQS7YEAU
 github.com/go-chi/chi v4.0.2+incompatible/go.mod h1:eB3wogJHnLi3x/kFX2A+IbTBlXxmMeXJVKy9tTv1XzQ=
 github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9 h1:6cjaGaVj38dAqjYOmCeyAh1pHC5Zf6Cxm1tkDORdZ5U=
 github.com/go-chi/hostrouter v0.0.0-20180220162504-7bff2694dfd9/go.mod h1:O0Q6TlPEvjLqJu7QcX2GYOBDKkQfKmVIPsZeCy3/KJA=
+github.com/go-chi/render v1.0.1 h1:4/5tis2cKaNdnv9zFLfXzcquC9HbeZgCnxGnKrltBS8=
+github.com/go-chi/render v1.0.1/go.mod h1:pq4Rr7HbnsdaeHagklXub+p6Wd16Af5l9koip1OvJns=
