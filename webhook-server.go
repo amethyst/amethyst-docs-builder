@@ -15,6 +15,7 @@ import (
 	"os/exec"
 
 	"github.com/go-chi/chi"
+	"github.com/go-chi/hostrouter"
 )
 
 var secret string
@@ -23,22 +24,6 @@ var scriptPath string
 const semverRegex = "^v(0|[1-9]+).(0|[1-9]+)(.(0|[1-9]+))?$"
 
 func main() {
-	stablePath := "./public/stable"
-	masterPath := "./public/master"
-	tagsPath := "./public/tags"
-
-	mustMkDir(stablePath)
-	mustMkDir(masterPath)
-	mustMkDir(tagsPath)
-
-	stable := http.Dir(stablePath)
-	master := http.Dir(masterPath)
-	tags := http.Dir(tagsPath)
-
-	stableFs := http.StripPrefix(stablePath, http.FileServer(stable))
-	masterFs := http.StripPrefix(masterPath, http.FileServer(master))
-	tagsFs := http.StripPrefix(tagsPath, http.FileServer(tags))
-
 	if _, ok := os.LookupEnv("SECRET"); !ok {
 		log.Fatal("secret env variable is not set!\n")
 	}
@@ -54,20 +39,68 @@ func main() {
 		scriptPath = val
 	}
 
-	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
+	catchAll := chi.NewRouter()
+	catchAll.Get("/health", handleHealth)
+
+	trigger := chi.NewRouter()
+	trigger.Post("/", handleTrigger)
 
 	r := chi.NewRouter()
-	r.Get("/health", handleHealth)
-	r.Post("/trigger", handleTrigger)
+	hr := hostrouter.New()
 
-	r.Get("/stable/*", stableFs.ServeHTTP)
-	r.Get("/master/*", masterFs.ServeHTTP)
-	r.Get(tagsURL, tagsFs.ServeHTTP)
+	docsURL := getEnvOr("DOCS_URL", "docs.amethyst.rs")
+	bookURL := getEnvOr("BOOK_URL", "book.amethyst.rs")
+	triggerURL := getEnvOr("TRIGGER_URL", "hook.amethyst.rs")
 
-	r.Get("/*", redirectToStable)
+	hr.Map(docsURL, serveSubDirectory("docs"))
+	hr.Map(bookURL, serveSubDirectory("book"))
+	hr.Map(triggerURL, trigger)
+	hr.Map("*", catchAll)
+
+	r.Mount("/", hr)
 
 	log.Printf("serving on port %s\n", port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", port), r))
+}
+
+func getEnvOr(s, def string) string {
+	result := def
+	if val, ok := os.LookupEnv(s); ok {
+		result = val
+	}
+
+	return result
+}
+
+func serveSubDirectory(subdir string) chi.Router {
+	stablePath := fmt.Sprintf("./public/%s/stable", subdir)
+	masterPath := fmt.Sprintf("./public/%s/master", subdir)
+	tagsPath := fmt.Sprintf("./public/%s/tags", subdir)
+
+	mustMkDir(stablePath)
+	mustMkDir(masterPath)
+	mustMkDir(tagsPath)
+
+	stable := http.Dir(stablePath)
+	master := http.Dir(masterPath)
+	tags := http.Dir(tagsPath)
+
+	stableFs := http.StripPrefix("/stable", http.FileServer(stable))
+	masterFs := http.StripPrefix("/master", http.FileServer(master))
+	tagsFs := http.FileServer(tags)
+
+	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
+
+	r := chi.NewRouter()
+	r.Get("/stable", http.RedirectHandler("/stable/", 301).ServeHTTP)
+	r.Get("/stable/*", stableFs.ServeHTTP)
+
+	r.Get("/master", http.RedirectHandler("/master/", 301).ServeHTTP)
+	r.Get("/master/*", masterFs.ServeHTTP)
+	r.Get(tagsURL, tagsFs.ServeHTTP)
+
+	r.Get("/", http.RedirectHandler("/stable/", 301).ServeHTTP)
+	return r
 }
 
 func redirectToStable(w http.ResponseWriter, r *http.Request) {
