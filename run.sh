@@ -15,7 +15,7 @@ echo "Compiling master book..."
 mdbook build book
 
 echo "Compiling master docs..."
-cargo doc --all --quiet
+cargo doc --all --no-deps --quiet
 cd ..
 
 echo "Moving master to public dir..."
@@ -35,7 +35,7 @@ echo "Compiling stable book ($LATEST_TAG)..."
 mdbook build book
 
 echo "Compiling stable docs ($LATEST_TAG)..."
-cargo doc --all --quiet
+cargo doc --all --no-deps --quiet
 cd ..
 
 echo "Moving stable to public dir..."
