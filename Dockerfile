@@ -10,10 +10,7 @@ ADD webhook-server.go .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o server
 
-FROM rust:latest
-RUN apt-get update && apt-get install git; \
-    cargo install cargo-update; \
-    cargo install mdbook
+FROM amethyst-docker.jfrog.io/amethyst-builder
 
 RUN mkdir -p /app
 WORKDIR /app
