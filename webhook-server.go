@@ -58,9 +58,6 @@ func main() {
 	docsBaseURL := getEnvOr("DOCS_BASE_URL", "docs.amethyst.rs")
 	bookBaseURL := getEnvOr("BOOK_BASE_URL", "book.amethyst.rs")
 
-	log.Printf("using docs base url: %s\n", docsBaseURL)
-	log.Printf("using book base url: %s\n", bookBaseURL)
-
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
@@ -104,11 +101,8 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	tags := http.Dir(tagsPath)
 
 	stableFs := http.StripPrefix("/stable", http.FileServer(stable))
-	log.Printf("stableFs is: %s", stable)
 	masterFs := http.StripPrefix("/master", http.FileServer(master))
-	log.Printf("masterFs is: %s", master)
 	tagsFs := http.FileServer(tags)
-	log.Printf("tagsFs is: %s", tags)
 
 	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
 
