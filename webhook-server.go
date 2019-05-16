@@ -58,6 +58,9 @@ func main() {
 	docsBaseURL := getEnvOr("DOCS_BASE_URL", "docs.amethyst.rs")
 	bookBaseURL := getEnvOr("BOOK_BASE_URL", "book.amethyst.rs")
 
+	log.Printf("using docs base url: %s\n", docsBaseURL)
+	log.Printf("using book base url: %s\n", bookBaseURL)
+
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
