@@ -104,20 +104,25 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	tags := http.Dir(tagsPath)
 
 	stableFs := http.StripPrefix("/stable", http.FileServer(stable))
+	log.Printf("stableFs is: %s", stableFs)
 	masterFs := http.StripPrefix("/master", http.FileServer(master))
+	log.Printf("masterFs is: %s", masterFs)
 	tagsFs := http.FileServer(tags)
+	log.Printf("tagsFs is: %s")
 
 	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
 
 	r := chi.NewRouter()
 	stableRoot := fmt.Sprintf("//%s/stable%s", baseURL, root)
 	r.Get("/stable", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Redirecting to stable: %s", stableRoot)
 		http.Redirect(w, r, stableRoot, 301)
 	})
 	r.Get("/stable/*", stableFs.ServeHTTP)
 
 	masterRoot := fmt.Sprintf("//%s/master%s", baseURL, root)
 	r.Get("/master", func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Redirecting master to: %s", masterRoot)
 		http.Redirect(w, r, masterRoot, 301)
 	})
 	r.Get("/master/*", masterFs.ServeHTTP)
