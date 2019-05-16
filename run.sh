@@ -4,11 +4,13 @@ mkdir -p public
 rm -rf amethyst
 mkdir -p amethyst/
 
-echo "Updating tooling..."
-cargo install-update -a
+echo "Printing debug info..."
+cargo --version
+rustc --version
+mdbook --version
 
 echo "Cloning amethyst..."
-git clone https://github.com/amethyst/amethyst --branch master amethyst
+git clone https://github.com/amethyst/amethyst
 
 cd amethyst
 echo "Compiling master book..."
