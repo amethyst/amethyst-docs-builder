@@ -116,7 +116,7 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	r.Get("/master/*", masterFs.ServeHTTP)
 	r.Get(tagsURL, tagsFs.ServeHTTP)
 
-	r.Get("/", http.RedirectHandler("/stable/", 301).ServeHTTP)
+	r.Get("/", http.RedirectHandler(stableRoot, 301).ServeHTTP)
 	r.NotFound(handleNotFound)
 
 	return r
