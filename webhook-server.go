@@ -55,11 +55,14 @@ func main() {
 	bookURL := getEnvOr("BOOK_URL", "book.amethyst.rs")
 	triggerURL := getEnvOr("TRIGGER_URL", "hook.amethyst.rs")
 
+	docsBaseURL := getEnvOr("DOCS_BASE_URL", "docs.amethyst.rs")
+	bookBaseURL := getEnvOr("BOOK_BASE_URL", "book.amethyst.rs")
+
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	hr.Map(docsURL, serveSubDirectory("docs"))
-	hr.Map(bookURL, serveSubDirectory("book"))
+	hr.Map(docsURL, serveSubDirectory("docs", "/amethyst/", docsBaseURL))
+	hr.Map(bookURL, serveSubDirectory("book", "/", bookBaseURL))
 	hr.Map(triggerURL, trigger)
 	hr.Map("*", catchAll)
 
@@ -84,7 +87,7 @@ func handleNotFound(w http.ResponseWriter, r *http.Request) {
 	render.HTML(w, r, notFoundPage)
 }
 
-func serveSubDirectory(subdir string) chi.Router {
+func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	stablePath := fmt.Sprintf("./public/%s/stable", subdir)
 	masterPath := fmt.Sprintf("./public/%s/master", subdir)
 	tagsPath := fmt.Sprintf("./public/%s/tags", subdir)
@@ -104,10 +107,12 @@ func serveSubDirectory(subdir string) chi.Router {
 	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
 
 	r := chi.NewRouter()
-	r.Get("/stable", http.RedirectHandler("/stable/", 301).ServeHTTP)
+	stableRoot := fmt.Sprintf("//%s/stable%s", baseURL, root)
+	r.Get("/stable", http.RedirectHandler(stableRoot, 301).ServeHTTP)
 	r.Get("/stable/*", stableFs.ServeHTTP)
 
-	r.Get("/master", http.RedirectHandler("/master/", 301).ServeHTTP)
+	masterRoot := fmt.Sprintf("//%s/master%s", baseURL, root)
+	r.Get("/master", http.RedirectHandler(masterRoot, 301).ServeHTTP)
 	r.Get("/master/*", masterFs.ServeHTTP)
 	r.Get(tagsURL, tagsFs.ServeHTTP)
 
