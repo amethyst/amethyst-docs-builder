@@ -1,6 +1,6 @@
 #!/bin/sh
 echo "Creating folders..."
-mkdir -p public/tags
+mkdir -p public
 rm -rf amethyst
 mkdir -p amethyst/
 
@@ -15,7 +15,7 @@ echo "Compiling master book..."
 mdbook build book
 
 echo "Compiling master docs..."
-cargo doc --all --no-deps --quiet
+cargo doc --all --no-deps
 cd ..
 
 echo "Moving master to public dir..."
@@ -35,7 +35,7 @@ echo "Compiling stable book ($LATEST_TAG)..."
 mdbook build book
 
 echo "Compiling stable docs ($LATEST_TAG)..."
-cargo doc --all --no-deps --quiet
+cargo doc --all --no-deps
 cd ..
 
 echo "Moving stable to public dir..."
