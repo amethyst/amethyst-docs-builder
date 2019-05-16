@@ -104,11 +104,11 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	tags := http.Dir(tagsPath)
 
 	stableFs := http.StripPrefix("/stable", http.FileServer(stable))
-	log.Printf("stableFs is: %s", stableFs)
+	log.Printf("stableFs is: %s", stable)
 	masterFs := http.StripPrefix("/master", http.FileServer(master))
-	log.Printf("masterFs is: %s", masterFs)
+	log.Printf("masterFs is: %s", master)
 	tagsFs := http.FileServer(tags)
-	log.Printf("tagsFs is: %s")
+	log.Printf("tagsFs is: %s", tags)
 
 	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
 
