@@ -108,23 +108,24 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 
 	r := chi.NewRouter()
 	stableRoot := fmt.Sprintf("//%s/stable%s", baseURL, root)
-	r.Get("/stable", http.RedirectHandler(stableRoot, 301).ServeHTTP)
+	r.Get("/stable", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, stableRoot, 301)
+	})
 	r.Get("/stable/*", stableFs.ServeHTTP)
 
 	masterRoot := fmt.Sprintf("//%s/master%s", baseURL, root)
-	r.Get("/master", http.RedirectHandler(masterRoot, 301).ServeHTTP)
+	r.Get("/master", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, masterRoot, 301)
+	})
 	r.Get("/master/*", masterFs.ServeHTTP)
 	r.Get(tagsURL, tagsFs.ServeHTTP)
 
-	r.Get("/", http.RedirectHandler(stableRoot, 301).ServeHTTP)
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, stableRoot, 301)
+	})
 	r.NotFound(handleNotFound)
 
 	return r
-}
-
-func redirectToStable(w http.ResponseWriter, r *http.Request) {
-	p := "/stable" + r.URL.Path
-	http.Redirect(w, r, p, 301)
 }
 
 func mustMkDir(p string) {
