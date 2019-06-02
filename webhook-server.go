@@ -146,13 +146,15 @@ func makeHTMLMiddleware(prefix, root string) func(http.Handler) http.Handler {
 
 			// or if we already have an extension
 			parts := strings.Split(r.URL.Path, "/")
-			last := parts[len(parts)-1]
-			if strings.LastIndex(last, ".") > 0 {
-				next.ServeHTTP(w, r)
-				return
+			if len(parts) > 0 {
+				last := parts[len(parts)-1]
+				if strings.LastIndex(last, ".") > 0 {
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 
-			endingsToTry := []string{".html"}
+			endingsToTry := []string{".html", "htm"}
 			stripped := strings.TrimPrefix(r.URL.Path, prefix)
 
 			for _, ext := range endingsToTry {
