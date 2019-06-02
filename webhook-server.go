@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -100,35 +101,83 @@ func serveSubDirectory(subdir, root, baseURL string) chi.Router {
 	master := http.Dir(masterPath)
 	tags := http.Dir(tagsPath)
 
-	stableFs := http.StripPrefix("/stable", http.FileServer(stable))
-	masterFs := http.StripPrefix("/master", http.FileServer(master))
+	stablePrefix := "/stable"
+	masterPrefix := "/master"
+
+	stableFs := http.StripPrefix(stablePrefix, http.FileServer(stable))
+	masterFs := http.StripPrefix(masterPrefix, http.FileServer(master))
 	tagsFs := http.FileServer(tags)
 
 	tagsURL := fmt.Sprintf("/{tag:%s}/*", semverRegex)
 
 	r := chi.NewRouter()
 	stableRoot := fmt.Sprintf("//%s/stable%s", baseURL, root)
-	r.Get("/stable", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Redirecting to stable: %s", stableRoot)
-		http.Redirect(w, r, stableRoot, 301)
-	})
-	r.Get("/stable/*", stableFs.ServeHTTP)
+	r.Get("/stable", http.RedirectHandler(stableRoot, 301).ServeHTTP)
+
+	r.
+		With(makeHTMLMiddleware(stablePrefix, stablePath)).
+		Get("/stable/*", stableFs.ServeHTTP)
 
 	masterRoot := fmt.Sprintf("//%s/master%s", baseURL, root)
-	r.Get("/master", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Redirecting master to: %s", masterRoot)
-		http.Redirect(w, r, masterRoot, 301)
-	})
-	r.Get("/master/*", masterFs.ServeHTTP)
-	r.Get(tagsURL, tagsFs.ServeHTTP)
+	r.Get("/master", http.RedirectHandler(masterRoot, 301).ServeHTTP)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Redirecting / to: %s", stableRoot)
-		http.Redirect(w, r, stableRoot, 301)
-	})
+	r.
+		With(makeHTMLMiddleware(masterPrefix, masterPath)).
+		Get("/master/*", masterFs.ServeHTTP)
+
+	r.
+		With(makeHTMLMiddleware("", tagsPath)).
+		Get(tagsURL, tagsFs.ServeHTTP)
+
+	r.Get("/", http.RedirectHandler(stableRoot, 301).ServeHTTP)
 	r.NotFound(handleNotFound)
 
 	return r
+}
+
+func makeHTMLMiddleware(prefix, root string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// first, check if there's a slash at the end
+			if strings.HasSuffix(r.URL.Path, "/") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// or if we already have an extension
+			parts := strings.Split(r.URL.Path, "/")
+			if len(parts) > 0 {
+				last := parts[len(parts)-1]
+				if strings.LastIndex(last, ".") > 0 {
+					next.ServeHTTP(w, r)
+					return
+				}
+			}
+
+			endingsToTry := []string{".html", "htm"}
+			stripped := strings.TrimPrefix(r.URL.Path, prefix)
+
+			for _, ext := range endingsToTry {
+				path := root + stripped + ext
+				stat, err := os.Stat(path)
+				if err != nil {
+					continue
+				}
+
+				if stat.IsDir() {
+					continue
+				}
+
+				// if we drop through to here, the file exists
+				// and we should adjust the path so that it will
+				// be served!
+				r.URL.Path = r.URL.Path + ext
+				break
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func mustMkDir(p string) {
