@@ -13,12 +13,17 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/hostrouter"
 	"github.com/go-chi/render"
+
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudfront"
 )
 
 var secret string
@@ -287,7 +292,52 @@ func runScript() {
 	if err != nil {
 		log.Printf("err waiting for cmd: %s\n", err)
 	}
-	log.Print("command ran\n")
+
+	log.Printf("creating cloudfront invalidation\n")
+
+	_, awsIDPresent := os.LookupEnv("AWS_ACCESS_KEY_ID")
+	_, awsKeyPresent := os.LookupEnv("AWS_SECRET_ACCESS_KEY")
+
+	if awsIDPresent && awsKeyPresent {
+		svc := cloudfront.New(session.New())
+		bookID := getEnvOr("BOOK_CDN_DIST_ID", "")
+		docsID := getEnvOr("DOCS_CDN_DIST_ID", "")
+
+		if bookID != "" {
+			if err := invalidate(svc, bookID); err != nil {
+				log.Printf("error invalidating book cdn: %v\n", err)
+			}
+		}
+
+		if docsID != "" {
+			if err := invalidate(svc, docsID); err != nil {
+				log.Printf("error invalidating docs cdn: %v\n", err)
+			}
+		}
+	}
+
+	log.Printf("command ran\n")
+}
+
+func invalidate(svc *cloudfront.CloudFront, id string) error {
+	callerRef := strconv.FormatInt(time.Now().Unix(), 10)
+
+	all := "/*"
+	items := []*string{&all}
+	paths := cloudfront.Paths{}
+	paths.SetItems(items)
+	paths.SetQuantity(1)
+
+	batch := cloudfront.InvalidationBatch{}
+	batch.SetCallerReference(callerRef)
+	batch.SetPaths(&paths)
+
+	input := &cloudfront.CreateInvalidationInput{}
+	input.SetDistributionId(id)
+	input.SetInvalidationBatch(&batch)
+
+	_, err := svc.CreateInvalidation(input)
+	return err
 }
 
 func print(s *bufio.Scanner, pre string) {
