@@ -17,7 +17,7 @@ echo "Compiling master book..."
 mdbook build book
 
 echo "Compiling master docs..."
-cargo doc --all --no-deps --features animation gltf vulkan
+cargo doc --all --features="animation gltf vulkan" --no-deps
 cd ..
 
 echo "Moving master to public dir..."
