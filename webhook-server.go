@@ -30,7 +30,7 @@ var secret string
 var scriptPath string
 var notFoundPage string
 
-const semverRegex = "^v(0|[1-9]+).(0|[1-9]+)(.(0|[1-9]+))?$"
+const semverRegex = "^v(0|[0-9]+).(0|[0-9]+)(.(0|[0-9]+))?$"
 
 func main() {
 	f, err := ioutil.ReadFile("./404.html")
