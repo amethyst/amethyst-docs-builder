@@ -37,7 +37,7 @@ echo "Compiling stable book ($LATEST_TAG)..."
 mdbook build book
 
 echo "Compiling stable docs ($LATEST_TAG)..."
-cargo doc --all --no-deps
+cargo doc --all --features="animation gltf vulkan" --no-deps
 cd ..
 
 echo "Moving stable to public dir..."
