@@ -14,6 +14,6 @@ RUN mkdir -p /app
 WORKDIR /app
 COPY --from=build-server /app/server .
 RUN chmod ugo+x server
-RUN rustup update stable
+RUN rustup self update && rustup update stable
 
 ADD run.sh CHECKS Procfile 404.html ./
